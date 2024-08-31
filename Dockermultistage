@@ -1,0 +1,24 @@
+# Stage 1: Build the Go application
+FROM golang:alpine3.19 AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod init mainapp
+
+RUN go build
+
+# Stage 2: Create a smaller image for running the Go application
+FROM scratch
+
+WORKDIR /app
+
+EXPOSE 5050
+
+COPY --from=builder /app/mainapp .
+
+COPY --from=builder /app/static ./static
+COPY --from=builder /app/templates ./templates
+
+ENTRYPOINT ["./mainapp"]
